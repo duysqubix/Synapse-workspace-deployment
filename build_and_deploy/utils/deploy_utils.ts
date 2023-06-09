@@ -2,7 +2,9 @@
 // Licensed under the MIT license.
 
 
-import * as core from '@actions/core';
+// import * as core from '@actions/core';
+import * as core from '../custom_core';
+
 import { getBearer, getManagedIdentityBearer } from './service_principal_client_utils';
 
 export enum DeployStatus {
@@ -37,13 +39,13 @@ export type ResourceType = 'credential' | 'sqlPool' | 'bigDataPool' | 'sqlscript
 export async function getParams(dataplane: boolean = false, env: string = ""): Promise<Params> {
     try {
 
-        const env: string = core.getInput('Environment');
-        var resourceGroup = core.getInput("resourceGroup");
-        var clientId = core.getInput("clientId");
-        var clientSecret = core.getInput("clientSecret");
-        var subscriptionId = core.getInput("subscriptionId");
-        var tenantId = core.getInput("tenantId");
-        var managedIdentity = core.getInput("managedIdentity");
+        const env: string = (core.getInput('Environment') as string);
+        var resourceGroup = (core.getInput("resourceGroup") as string);
+        var clientId = (core.getInput("clientId") as string);
+        var clientSecret = (core.getInput("clientSecret") as string);
+        var subscriptionId = (core.getInput("subscriptionId") as string);
+        var tenantId = (core.getInput("tenantId") as string);
+        var managedIdentity = (core.getInput("managedIdentity") as string);
         var activeDirectoryEndpointUrl = getAdEndpointUrl(env);
         var resourceManagerEndpointUrl = getRmEndpointUrl(env);
 
@@ -58,9 +60,9 @@ export async function getParams(dataplane: boolean = false, env: string = ""): P
 
         let bearer: string;
 
-        if(managedIdentity == 'true'){
+        if (managedIdentity == 'true') {
             bearer = await getManagedIdentityBearer(resourceManagerEndpointUrl);
-        }else{
+        } else {
             bearer = await getBearer(clientId, clientSecret, subscriptionId, tenantId, resourceManagerEndpointUrl, activeDirectoryEndpointUrl);
         }
 

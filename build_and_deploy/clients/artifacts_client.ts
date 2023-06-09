@@ -2,14 +2,15 @@
 // Licensed under the MIT license.
 
 
-import * as core from '@actions/core';
+// import * as core from '@actions/core';
+import * as core from '../custom_core';
 import * as httpClient from 'typed-rest-client/HttpClient';
 import * as httpInterfaces from 'typed-rest-client/Interfaces';
 import { Resource } from '../utils/arm_template_utils';
 import { Artifact, DataFactoryType } from "../utils/artifacts_enum";
 import { DeployStatus, Env, getParams, Params } from '../utils/deploy_utils';
 import { SystemLogger } from '../utils/logger';
-import {resolve} from "q";
+import { resolve } from "q";
 
 
 export var typeMap = new Map<string, Artifact>([
@@ -111,7 +112,7 @@ export class ArtifactClient {
         return await this.artifactDeletionTask(baseUrl, resourceType, payload, token);
     }
 
-    public async deleteDatalakeChildren(resource: string, workspace: string, location: string): Promise<string>{
+    public async deleteDatalakeChildren(resource: string, workspace: string, location: string): Promise<string> {
         let url = ArtifactClient.getUrlByEnvironment(workspace, location);
         let param: Params = await getParams(true, location);
         let token = param.bearer;
@@ -131,17 +132,17 @@ export class ArtifactClient {
         });
     }
 
-    public async WaitForAllDeployments(isDelete: boolean){
-        for(let i=0; i<this.deploymentTrackingRequests.length; i++){
+    public async WaitForAllDeployments(isDelete: boolean) {
+        for (let i = 0; i < this.deploymentTrackingRequests.length; i++) {
             let deploymentTrackingRequest = this.deploymentTrackingRequests[i];
-            if(isDelete) {
+            if (isDelete) {
                 await this.checkStatusForDelete(deploymentTrackingRequest.url, deploymentTrackingRequest.name, deploymentTrackingRequest.token);
             }
             else {
                 await this.checkStatus(deploymentTrackingRequest.url, deploymentTrackingRequest.name, deploymentTrackingRequest.token);
             }
         }
-        while(this.deploymentTrackingRequests.length>0){
+        while (this.deploymentTrackingRequests.length > 0) {
             this.deploymentTrackingRequests.pop();
         }
     }
@@ -156,7 +157,7 @@ export class ArtifactClient {
         var url = this.getCommonPath(baseUrl, artifactype);
         while (artifactNameValue.indexOf(' ') > -1)
             artifactNameValue = artifactNameValue.replace(' ', '%20');
-        if(artifactype == `${Artifact.managedprivateendpoints}s`){
+        if (artifactype == `${Artifact.managedprivateendpoints}s`) {
             return url + `/${Artifact.managedprivateendpoints}/${artifactNameValue}?${this.apiVersion}`;
         }
 
@@ -170,7 +171,7 @@ export class ArtifactClient {
             url = `${baseUrl}/subscriptions/${this.params.subscriptionId}/resourceGroups/${this.params.resourceGroup}`;
             url = url + `/providers/Microsoft.Synapse/workspaces/${core.getInput('TargetWorkspaceName')}`;
         }
-        else if(artifactype === Artifact.managedprivateendpoints || artifactype == `${Artifact.managedprivateendpoints}s`){
+        else if (artifactype === Artifact.managedprivateendpoints || artifactype == `${Artifact.managedprivateendpoints}s`) {
             url = baseUrl + "/" + Artifact.managedvirtualnetworks + "/default";
         }
         else {
@@ -293,7 +294,7 @@ export class ArtifactClient {
         try {
             let payLoadJson = JSON.parse(payload.content);
 
-            if(payLoadJson["properties"].hasOwnProperty("fqdns")){
+            if (payLoadJson["properties"].hasOwnProperty("fqdns")) {
                 delete payLoadJson["properties"]["fqdns"];
             }
 
@@ -327,27 +328,27 @@ export class ArtifactClient {
 
     private async artifactsGroupDeploymentTask(baseUrl: string, payloadObj: Resource, token: string): Promise<string> {
 
-        try{
+        try {
             let jsonContent = JSON.parse(payloadObj.content);
-            for(let ddl of jsonContent['properties']['Ddls']){
-                let artifact : any = {'properties': ddl['NewEntity']};
+            for (let ddl of jsonContent['properties']['Ddls']) {
+                let artifact: any = { 'properties': ddl['NewEntity'] };
                 artifact['name'] = ddl['NewEntity']['Name'];
                 artifact['type'] = ddl['NewEntity']['EntityType'];
                 delete ddl['NewEntity']['Name'];
                 delete ddl['NewEntity']['EntityType'];
 
                 let url = "";
-                if(artifact['type'].toLowerCase() == 'database'){
+                if (artifact['type'].toLowerCase() == 'database') {
                     url = `${baseUrl}/databases/${artifact['name']}`;
                 }
-                else{
+                else {
                     let type = artifact['type'].toLowerCase() + 's';
                     let dbName = artifact['properties']['Namespace']['DatabaseName'];
                     url = `${baseUrl}/databases/${dbName}/${type}/${artifact['name']}`;
                 }
 
-                if(artifact['type'].toLowerCase() == 'relationship'){
-                    if(!artifact['properties'].hasOwnProperty('RelationshipType')){
+                if (artifact['type'].toLowerCase() == 'relationship') {
+                    if (!artifact['properties'].hasOwnProperty('RelationshipType')) {
                         artifact['properties']['RelationshipType'] = 0;
                     }
                 }
@@ -358,7 +359,7 @@ export class ArtifactClient {
                     let resStatus = res.message.statusCode;
                     console.log(`For Artifact: ${artifact['name']} of type ${artifact['type']}: ArtifactDeploymentTask status: ${resStatus}; status message: ${res.message.statusMessage}`);
 
-                    try{
+                    try {
                         if (resStatus != 200 && resStatus != 201 && resStatus != 202) {
                             res.readBody().then((body) => {
                                 if (!!body) {
@@ -369,7 +370,7 @@ export class ArtifactClient {
                         }
                         console.log(`For Artifact: ${artifact['name']} of type ${artifact['type']} deployment successful.`);
                     }
-                    catch(err){
+                    catch (err) {
                         throw err;
                     }
                 });
@@ -377,7 +378,7 @@ export class ArtifactClient {
 
             return resolve(DeployStatus.success);
         }
-        catch(err) {
+        catch (err) {
             throw err;
         }
     }
@@ -427,13 +428,13 @@ export class ArtifactClient {
 
                         return resolve(DeployStatus.success);
                     } else {
-                        if(resourceType == Artifact.managedprivateendpoints){
+                        if (resourceType == Artifact.managedprivateendpoints) {
                             let status = responseJson['properties']['provisioningState'];
-                            if (status == "Succeeded"){
+                            if (status == "Succeeded") {
                                 return resolve(DeployStatus.success);
                             }
 
-                            if (status == "Provisioning"){
+                            if (status == "Provisioning") {
                                 let deploymentTrackingRequest: DeploymentTrackingRequest = {
                                     url: url,
                                     name: payloadObj.name,
@@ -454,7 +455,7 @@ export class ArtifactClient {
     }
 
     private async artifactDeletionTask(baseUrl: string, resourceType: string, payloadObj: Resource,
-                                       token: string) : Promise<string> {
+        token: string): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
             var url: string = this.buildArtifactUrl(baseUrl, `${resourceType}s`, payloadObj.name);
             this.client.del(url, this.getHeaders(token)).then((res) => {
@@ -506,10 +507,11 @@ export class ArtifactClient {
             if (resStatus != 200 && resStatus != 201 && resStatus != 202) {
                 let msg = res.message.statusMessage;
                 let response = JSON.parse(body);
-                if(body != null && response.error != null && response.error.message != null) {
+                if (body != null && response.error != null && response.error.message != null) {
                     msg = response.error.message;
                 }
-                throw new Error(`Checkstatus => status: ${resStatus}; status message: ${msg}`);            }
+                throw new Error(`Checkstatus => status: ${resStatus}; status message: ${msg}`);
+            }
 
             if (!body) {
                 await this.delay(delayMilliSecs);
@@ -550,10 +552,10 @@ export class ArtifactClient {
             var resStatus: number = res.message.statusCode!;
 
             var body = await res.readBody();
-            if(body.trim() != ""){
+            if (body.trim() != "") {
                 let bodyObj = JSON.parse(body);
 
-                if(bodyObj["status"].toLowerCase() == "failed"){
+                if (bodyObj["status"].toLowerCase() == "failed") {
                     SystemLogger.info(bodyObj["error"]["message"]);
                     throw new Error(`For Artifact: ${name} deletion failed. ${JSON.stringify(bodyObj)}`);
                 }

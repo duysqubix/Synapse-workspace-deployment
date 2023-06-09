@@ -1,4 +1,6 @@
-import * as core from '@actions/core';
+// import * as core from '@actions/core';
+import * as core from '../custom_core';
+
 import {
     createArmTemplate,
     findDefaultArtifacts,
