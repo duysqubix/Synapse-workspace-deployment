@@ -2,7 +2,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - master
+    - cli
 
 jobs:
   build_and_upload:
@@ -26,7 +26,7 @@ jobs:
     - name: Convert Node.js code to binary
       working-directory: ./build_and_deploy
       run: |
-        pkg -t node14-linux-x64 main.js -o synapse-deploy
+        npm run build
 
     - name: Get commit SHA suffix
       id: get_commit_sha_suffix
@@ -39,7 +39,7 @@ jobs:
       with:
         working-directory: ./build_and_deploy
         files: |
-          synapse-deploy
+          ./bin/syndeploy
         tag_name: 1.0-${{ steps.get_commit_sha_suffix.outputs.commit_sha_suffix }}
         body: 'new body text'
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
