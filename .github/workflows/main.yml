@@ -1,25 +1,39 @@
-name: CI
 
 on:
-  pull_request:
+  workflow_dispatch:
+  push:
     branches:
-      - master
+    - master
 
 jobs:
-  build_test_job:
-    name: 'Build and test job'
-    runs-on: ubuntu-latest
-    steps:
+  build_and_upload:
+    runs-on: self-hosted
 
-    - name: 'Checking out repo code'
+    steps:
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: 'Validate build'
-      working-directory: ./build_and_deploy
-      run: |
-        npm install
-        npm run build
-    - name: 'Run tests'
-      working-directory: ./build_and_deploy
-      run: |
-        npm run test
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install Dependencies
+      run: npm install -g .
+
+    - name: Convert Node.js code to binary
+      run: pkg -t node14-linux-x64 main.js -o armu
+      
+    - name: Get commit SHA suffix
+      id: get_commit_sha_suffix
+      run: echo "::set-output name=commit_sha_suffix::$(echo ${GITHUB_SHA: -5})"
+      
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          armu
+          armu-ppe
+        tag_name: 1.0-${{ steps.get_commit_sha_suffix.outputs.commit_sha_suffix }}
+        body: 'new body text'
+        token: ${{ secrets.REPO_ACCESS_TOKEN }}
