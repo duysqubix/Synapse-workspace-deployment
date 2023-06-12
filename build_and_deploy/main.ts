@@ -42,7 +42,7 @@ main()
         process.exit(0)
     })
     .catch((err: Error) => {
-        core.info("Action failed -> " + err);
+        core.error("Action failed -> " + err);
         process.exit(1);
     });
 

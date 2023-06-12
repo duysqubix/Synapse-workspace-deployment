@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha",
     "start": "node entrypoint.js",
-    "build": "tsc && pkg . -o bin/synapse_deploy"
+    "build": "tsc && pkg . -o bin/syndeploy"
   },
   "bin": "dist/main.js",
   "keywords": [ ],

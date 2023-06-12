@@ -17,7 +17,11 @@ const argv = yargs(process.argv.slice(2)).options({
     subscriptionId: { type: 'string', default: '' },
     tenantId: { type: 'string', default: '' },
     managedIdentity: { type: 'string', default: '' },
-}).argv;
+    operation: { type: 'string', default: '' },
+    npmpackage: { type: 'string', default: '' },
+}).demandOption(['operation', 'TemplateFile',
+    'ParametersFile', 'TargetWorkspaceName',
+    'clientId', 'clientSecret', 'subscriptionId', 'tenantId', 'npmpackage']).argv;
 
 export function getInput(name: string): string | boolean {
     return argv[name];

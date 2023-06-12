@@ -1,19 +1,19 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import {BundleManager} from "./BundleManager";
+import { BundleManager } from "./BundleManager";
 import path from "path";
-import {DeployParams, ExportParams, Operations, ValidateParams} from "./OperationInterfaces";
-import {OPERATIONS} from "../utils/artifacts_enum";
-import {isStrNullOrEmpty} from "../utils/common_utils";
-import {PackageFile, PackageFiles} from "../package_file";
-import {getParams} from "../utils/deploy_utils";
-import {Orchestrator} from "../orchestrator";
-import {ArtifactClient} from "../clients/artifacts_client";
-import {SystemLogger} from "../utils/logger";
+import { DeployParams, ExportParams, Operations, ValidateParams } from "./OperationInterfaces";
+import { OPERATIONS } from "../utils/artifacts_enum";
+import { isStrNullOrEmpty } from "../utils/common_utils";
+import { PackageFile, PackageFiles } from "../package_file";
+import { getParams } from "../utils/deploy_utils";
+import { Orchestrator } from "../orchestrator";
+import { ArtifactClient } from "../clients/artifacts_client";
+import { SystemLogger } from "../utils/logger";
 
 
-export class DeployOperation implements Operations{
+export class DeployOperation implements Operations {
     operationType: OPERATIONS = OPERATIONS.deploy;
     operationParams: DeployParams;
 
@@ -24,7 +24,7 @@ export class DeployOperation implements Operations{
     public async PerformOperation(): Promise<void> {
         SystemLogger.info(`Starting ${this.operationType} operation`);
 
-        if(isStrNullOrEmpty(this.operationParams.overrides) && this.operationParams.failOnMissingOverrides){
+        if (isStrNullOrEmpty(this.operationParams.overrides) && this.operationParams.failOnMissingOverrides) {
             throw new Error("Overrides not provided.");
         }
 
@@ -48,7 +48,7 @@ export class DeployOperation implements Operations{
 
             await orchestrator.orchestrateFromPublishBranch();
         }
-        catch(err){
+        catch (err) {
             SystemLogger.info(`${this.operationType} operation failed`);
             throw err;
         }
@@ -56,7 +56,7 @@ export class DeployOperation implements Operations{
 
 }
 
-export class ValidateOperation implements Operations{
+export class ValidateOperation implements Operations {
     operationType: OPERATIONS = OPERATIONS.validate;
     operationParams: ValidateParams;
 
@@ -67,7 +67,6 @@ export class ValidateOperation implements Operations{
     public async PerformOperation(): Promise<void> {
         SystemLogger.info(`Starting ${this.operationType} operation`);
         let cmd = [
-            'node',
             BundleManager.defaultBundleFilePath,
             this.operationType,
             `"${this.operationParams.artifactsFolder}"`,
@@ -78,7 +77,7 @@ export class ValidateOperation implements Operations{
     }
 }
 
-export class ExportOperation implements Operations{
+export class ExportOperation implements Operations {
     operationType: OPERATIONS = OPERATIONS.export;
     operationParams: ExportParams;
 
@@ -89,7 +88,6 @@ export class ExportOperation implements Operations{
     public async PerformOperation(): Promise<void> {
         SystemLogger.info(`Starting ${this.operationType} operation`);
         let cmd = [
-            'node',
             BundleManager.defaultBundleFilePath,
             this.operationType,
             `"${this.operationParams.artifactsFolder}"`,
@@ -99,8 +97,8 @@ export class ExportOperation implements Operations{
 
         await BundleManager.ExecuteShellCommand(cmd);
 
-        if(this.operationParams.publishArtifact){
-            SystemLogger.info("Generating artifacts in "+ this.operationParams.destinationFolder);
+        if (this.operationParams.publishArtifact) {
+            SystemLogger.info("Generating artifacts in " + this.operationParams.destinationFolder);
             // Do not remove the below log. It is used to upload the artifact.
         }
     }
