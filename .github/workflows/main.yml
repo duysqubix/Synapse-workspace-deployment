@@ -18,7 +18,9 @@ jobs:
         node-version: '14'
 
     - name: Install Dependencies
-      run: npm install -g .
+      run: |
+        cd build_and_deploy && \
+        npm install -g .
 
     - name: Convert Node.js code to binary
       run: pkg -t node14-linux-x64 main.js -o synapse-deploy
